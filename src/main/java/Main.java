@@ -1,115 +1,20 @@
 import java.util.OptionalInt;
 
 public class Main {
-    public class Person {
-        protected final String name;
-        protected final String surname;
-        protected int age;
-        protected String address = null;
 
-        public Person(String name, String surname) {
-            //new PersonBuilder(name, surname);
-            this.name = name;
-            this.surname = surname;//TODO установить имя и фамилию
-        }
-
-        public Person(String name, String surname, int age) {
-            this.name = name;
-            this.surname = surname;
-            this.age = age;
-           //TODO установить имя, фамилию и возраст
-        }
-
-        public boolean hasAge() {
-            if (age == 0) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-
-        public boolean hasAddress() {
-            if (address == null) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getSurname() {
-            return surname;
-        }
-
-        public OptionalInt getAge() {
-            if (hasAge() == true) {
-                return OptionalInt.of(age);
-            } else
-                return null;
-        }
-
-        public String getAddress() { return address; }
-
-
-        public void setAddress(String address) {
-            this.address=address;}
-
-        public void happyBirthday() {
-            int newAge=this.age+1;
-            this.age=newAge;}
-
-        @Override
-        public String toString() {
-            if (this.hasAge()&&this.hasAddress()){
-            return "Person{" +
-                    "name='" + name + '\'' +
-                    ", surname='" + surname + '\'' +
-                    ", age=" + age +
-                    ", address='" + address + '\'' +
-                    '}';}
-            else if (this.hasAddress()){
-               return  "Person{" +
-                        "name='" + name + '\'' +
-                        ", surname='" + surname + '\'' +
-                        ", address='" + address + '\'' +
-                        '}';
-            }else if(this.hasAge()){
-                return "Person{" +
-                        "name='" + name + '\'' +
-                        ", surname='" + surname + '\'' +
-                        ", age=" + age +
-                        '}';
-            }else {
-                return "Person{" +
-                        "name='" + name + '\'' +
-                        ", surname='" + surname + '\'' +
-                        '}';
-            }
-        }
-
-        @Override
-        public int hashCode() { /*...*/
-        return 0;}//TODO переопределить хеш для ребёнка
-
-        public PersonBuilder newChildBuilder() { /*...*/
-        return null;}//TODO сделать ребёнка
-    }
-
-    public class PersonBuilder {
+    public static class PersonBuilder {
         protected String name;
         protected String surname;
         protected int age;
         protected String address;
 
-        public PersonBuilder(String name, String surname) {
+        public PersonBuilder(String name, String surname) throws IllegalStateException {
             this.name = name;
             this.surname = surname;
         }
 
-        //...
+        public PersonBuilder() {
+        }
 
         public PersonBuilder setName(String name) {
             if (this.name == null) {
@@ -132,41 +37,40 @@ public class Main {
         }
 
         public PersonBuilder setAge(int age) {
-            try{ if (!build().hasAge()&&age>0) {//TODO если человеку всё же 0 лет, что тогда
+            if (OptionalInt.of(this.age) != OptionalInt.empty() && age >= 0) {
                 this.age = age;
                 return this;
-            } else if(age>0){
+            } else if (age > 0) {
                 System.out.println("Возраст для этого человека внесен. Данные изменяются при дне рождении.");
-            }}
-            catch (IllegalArgumentException exception){
-                System.out.println("Введено некорректное значение возраста!");
-                exception.printStackTrace();
+            } else {
+                throw new IllegalArgumentException("Введено: " + age + " - некорректное значение возраста!");
             }
             return null;
+        }
+
+        public Person build() throws IllegalStateException {
+
+            if (this.name != null && this.surname != null) {
+                return new Person(this);
+            } else if (this.name != null) {
+                throw new IllegalStateException("Не хватает данных: фамилии");
+            } else if (this.surname != null) {
+                throw new IllegalStateException("Не хватает данных: имени");
+            } else {
+                throw new IllegalStateException("Не хватает данных: имени или фамилии");
+            }
         }
 
         public PersonBuilder setAddress(String address) {
             this.address = address;
-            System.out.println("Адрес " + this.name + " " + this.surname + " изменён.");
             return this;
-        }
-
-        public Person build() {
-            try {
-                if (!name.isEmpty() && !surname.isEmpty()) {
-                    new PersonBuilder(name, surname).build();
-                }
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
-                System.out.println("Не хватает данных: имени или фамилии");
-                //TODO сделать разделение на имя и фамилию
-            }
-            return null;
         }
     }
 
-    public static void main(String[] args) {
-        Person mom = new PersonBuilder(name, surname)
+    public static void main(String[] args) throws IllegalStateException, IllegalArgumentException {
+        final String name = null;
+        final String surname = null;
+        Person mom = new PersonBuilder()
                 .setName("Анна")
                 .setSurname("Вольф")
                 .setAge(31)
@@ -176,13 +80,30 @@ public class Main {
                 .setName("Антошка")
                 .build();
         System.out.println("У " + mom + " есть сын, " + son);
-
-
+        //Возраст 0 лет
+        Person baby = new PersonBuilder()
+                .setName("Алла")
+                .setSurname("Веерер")
+                .setAge(0)
+                .build();
+        System.out.println("Самый маленький пассажир: " + baby);
+        System.out.println("Имя мамы: " + mom.getName() + " , фамилия малыша: " + baby.getSurname() + ", возраст ребенка: "
+                + son.getAge().getAsInt() + ", адрес мамы: " + mom.getAddress());
+        //День рождения у мамы
+        mom.happyBirthday();
+        System.out.println("День Рождения у мамы! Ей сегодня " + mom.getAge().getAsInt());
         try {
             // Возраст недопустимый
             new PersonBuilder(name, surname).setAge(-100).build();
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
+        try {
+            // Не хватает обяхательных полей
+            Person person = new PersonBuilder().build();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        }
+
     }
 }
