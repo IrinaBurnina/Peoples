@@ -8,7 +8,7 @@ public class Person {
     private int age;
     private String address;
 
-    protected Person(Main.PersonBuilder personBuilder) {
+    protected Person(PersonBuilder personBuilder) {
         this.name = personBuilder.name;
         this.surname = personBuilder.surname;
         this.age = personBuilder.age;
@@ -87,8 +87,8 @@ public class Person {
         return Objects.hashCode(name + surname);
     }
 
-    public Main.PersonBuilder newChildBuilder() {
-        Main.PersonBuilder child = new Main.PersonBuilder();
+    public PersonBuilder newChildBuilder() {
+        PersonBuilder child = new PersonBuilder();
         child.surname = this.surname;
         if (this.hasAddress()) {
             child.address = this.address;
